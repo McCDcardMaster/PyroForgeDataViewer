@@ -22,7 +22,7 @@ class ResourceViewer:
         self.current_file = None
         self.image_label = None
         self.media_frame = None
-        self.unsaved_changes = False  # Флаг для отслеживания изменений
+        self.unsaved_changes = False
         self.current_resource_key = None
         self.current_tree_item = None
 
@@ -49,16 +49,16 @@ class ResourceViewer:
         self.tree.pack(side=tk.LEFT, fill=tk.Y)
         self.text_editor = scrolledtext.ScrolledText(self.root, wrap=tk.WORD)
         self.text_editor.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
-        self.text_editor.bind("<KeyRelease>", self.on_text_change)  # Отслеживаем изменения в тексте
+        self.text_editor.bind("<KeyRelease>", self.on_text_change)
 
         self.image_label = tk.Label(self.root)
         self.image_label.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
         self.media_frame = tk.Frame(self.root)
         self.media_frame.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
         self.tree.bind("<<TreeviewSelect>>", self.on_tree_select)
-        self.tree.bind("<Double-1>", self.on_double_click)  # Обработка двойного клика
+        self.tree.bind("<Double-1>", self.on_double_click)
 
-        # Обработка закрытия окна через крестик
+
         self.root.protocol("WM_DELETE_WINDOW", self.on_exit)
 
     def on_text_change(self, event):
@@ -70,7 +70,6 @@ class ResourceViewer:
         if file_path:
             self.current_file = file_path
             self.load_resources(file_path)
-            # Изменяем название окна, чтобы отобразить имя открытого файла
             self.root.title(f"PFDataViewer [{os.path.basename(file_path)}]")
 
     def load_resources(self, file_path):
@@ -91,7 +90,6 @@ class ResourceViewer:
                 "Sounds": []
             }
             for key, value in manifest.items():
-                # Извлекаем только имя файла из пути
                 file_name = os.path.basename(key)
                 if key.endswith('.ttf'):
                     categories["Fonts"].append((file_name, value))
@@ -110,7 +108,7 @@ class ResourceViewer:
                     self.tree.insert(category_id, "end", text=resource[0], values=(resource[1],))
 
             self.resource_manager = ResourceManager(resources)
-            self.unsaved_changes = False  # Сбрасываем флаг изменений после загрузки
+            self.unsaved_changes = False
 
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load resources: {e}")
@@ -129,7 +127,6 @@ class ResourceViewer:
 
         real_key = values[0]
 
-        # Сохраняем изменения текущего ресурса перед переключением, если это текстовый ресурс
         if self.current_resource_key is not None and self.current_tree_item is not None:
             parent_id = self.tree.parent(self.current_tree_item)
             if parent_id:
@@ -141,20 +138,17 @@ class ResourceViewer:
                         self.resource_manager.resources[self.current_resource_key] = new_data
                         self.unsaved_changes = True
 
-        # Обновляем текущий ресурс и элемент дерева
         self.current_resource_key = real_key
         self.current_tree_item = selected_item
 
         if self.resource_manager and real_key in self.resource_manager.resources:
             data = self.resource_manager.resources[real_key]
-            # Временно отключаем обработчик изменений
             self.text_editor.unbind("<KeyRelease>")
             self.text_editor.delete(1.0, tk.END)
             self.image_label.config(image='')
             for widget in self.media_frame.winfo_children():
                 widget.destroy()
 
-            # Загрузка данных в редактор
             if isinstance(data, bytes):
                 if data.startswith(b'\xff\xd8') or data.startswith(b'\x89PNG'):
                     self.display_image(data)
@@ -170,11 +164,9 @@ class ResourceViewer:
             else:
                 self.text_editor.insert(tk.END, str(data))
 
-            # Включаем обработчик обратно
             self.text_editor.bind("<KeyRelease>", self.on_text_change)
 
     def on_double_click(self, event):
-        """Обработка двойного клика на ресурсе."""
         selected_items = self.tree.selection()
         if not selected_items:
             return
@@ -187,12 +179,10 @@ class ResourceViewer:
         real_key = values[0]
 
         if self.resource_manager and real_key in self.resource_manager.resources:
-            # Создаем новое окно для взаимодействия
             export_window = tk.Toplevel(self.root)
             export_window.title("Export Resource")
             export_window.geometry("300x100")
 
-            # Кнопка для выгрузки ресурса
             export_button = tk.Button(export_window, text="Export Resource", command=lambda: self.export_resource(real_key))
             export_button.pack(pady=20)
 
@@ -202,7 +192,6 @@ class ResourceViewer:
             data = self.resource_manager.resources[resource_key]
             file_name = os.path.basename(resource_key)
 
-            # Запрашиваем у пользователя путь для сохранения
             save_path = filedialog.asksaveasfilename(defaultextension=os.path.splitext(file_name)[1], filetypes=[("All Files", "*.*")], initialfile=file_name)
             if save_path:
                 try:
@@ -261,19 +250,17 @@ class ResourceViewer:
                 messagebox.showerror("Error", f"Failed to save file: {e}")
 
     def on_exit(self):
-        """Обработка выхода из программы с проверкой изменений."""
         if self.unsaved_changes:
             response = messagebox.askyesnocancel("Save Changes", "Do you want to save changes before exiting?")
-            if response is None:  # Нажата кнопка "Отмена"
+            if response is None:
                 return
-            elif response:  # Нажата кнопка "Да"
+            elif response:
                 self.save_file()
         self.root.quit()
 
 if __name__ == "__main__":
     root = tk.Tk()
 
-    # Проверяем аргументы командной строки
     file_path = None
     if len(sys.argv) > 1:
         file_path = sys.argv[1]
