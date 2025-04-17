@@ -21,4 +21,4 @@ This project is a monument to the **"DIY before anyone notices"** era. Written i
 ### 🛠 Installation (If You Dare)  
 1. Clone the repo (at your own risk):  
    ```bash  
-   git clone https://github.com/yourusername/PyroForgeDataViewer.git  
+   git clone https://github.com/McCDcardMaster/PyroForgeDataViewer.git  
