@@ -1,0 +1,11 @@
+	build-191384:
+
+1 - Added changelogs.txt file
+
+2 - Added support for displaying fonts (Finally)
+
+3 - Added the ability to zoom in and out of images
+
+4 - Added play and stop buttons when selecting an audio file
+
+5 - Made convenient display of images/fonts
